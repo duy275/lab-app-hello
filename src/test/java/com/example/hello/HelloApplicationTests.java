@@ -9,5 +9,6 @@ class HelloApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
+	@Test
+	void shouldFail() { org.junit.jupiter.api.Assertions.assertEquals(1, 2); }
 }
