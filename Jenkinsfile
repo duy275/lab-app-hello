@@ -4,6 +4,10 @@ pipeline {
       yaml '''
 spec:
   containers:
+    - name: jnlp
+      env:
+        - name: GH_TOKEN
+          valueFrom: {secretKeyRef: {name: github-token, key: token}}
     - name: maven
       image: maven:3.9-eclipse-temurin-21
       command: [sleep]
@@ -56,6 +60,21 @@ spec:
               --output type=image,name=${IMAGE}:${IMAGE_TAG},push=true
           '''
         }
+      }
+    }
+    stage('Update GitOps') {
+      steps {                          // không bọc container() → chạy trong jnlp
+        sh '''
+          rm -rf gitops
+          git clone -q https://github.com/duy275/lab-gitops.git gitops
+          cd gitops
+          sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/" systems/hello/kustomization.yaml
+          git config user.name  "jenkins-bot"
+          git config user.email "jenkins-bot@users.noreply.github.com"
+          git commit -am "hello: ${IMAGE_TAG}" || { echo "tag không đổi, bỏ qua"; exit 0; }
+          git -c credential.helper='!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f' \
+              push origin HEAD:main
+        '''
       }
     }
   }
