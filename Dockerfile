@@ -1,7 +1,7 @@
-FROM eclipse-temurin:21-jre          # chỉ cần JRE để chạy, không cần Maven/JDK → image nhẹ
+FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY target/hello-*.jar app.jar      # jar do Maven build sẵn trong workspace
+COPY target/hello-*.jar app.jar
 RUN useradd -r -u 10001 app
-USER 10001                           # không chạy bằng root
+USER 10001
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
